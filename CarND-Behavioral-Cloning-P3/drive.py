@@ -1,6 +1,5 @@
 import argparse
 import base64
-
 import numpy as np
 import socketio
 import eventlet.wsgi
@@ -8,7 +7,7 @@ from PIL import Image
 from flask import Flask
 from io import BytesIO
 import os
-
+from keras.losses import logcosh
 from keras.models import model_from_json
 from keras.optimizers import Adam
 import warnings
@@ -92,7 +91,7 @@ if __name__ == '__main__':
     with open(args.model, 'r') as jfile:
         model = model_from_json(jfile.read())
 
-    model.compile(optimizer=Adam(lr=3e-05), loss= "mean_squared_logarithmic_error")
+    model.compile(optimizer=Adam(lr=1e-04), loss= logcosh, metrics=['accuracy'])
     weights_file = args.model.replace('json', 'h5')
     model.load_weights(weights_file)
 

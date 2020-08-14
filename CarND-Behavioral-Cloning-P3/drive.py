@@ -61,7 +61,7 @@ def telemetry(sid, data):
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = preprocess(np.asarray(image))
         transformed_image_array = image_array[None, :, :, :]
-        steering_angle = float(model.predict(transformed_image_array, batch_size=1))
+        steering_angle = float(model.predict(transformed_image_array, batch_size=1))/4
         throttle = controller.update(float(speed))
         print(steering_angle, throttle)
         send_control(steering_angle, throttle)
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     with open(args.model, 'r') as jfile:
         model = model_from_json(jfile.read())
 
-    model.compile(optimizer=Adam(lr=1e-04), loss= logcosh, metrics=['accuracy'])
+    model.compile(optimizer=Adam(lr=2e-04), loss= "mse")
     weights_file = args.model.replace('json', 'h5')
     model.load_weights(weights_file)
 

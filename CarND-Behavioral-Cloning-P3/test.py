@@ -18,11 +18,11 @@ if __name__ == '__main__':
     with open("model.json", 'r') as jfile:
         model = model_from_json(jfile.read())
 
-    model.compile(optimizer=Adam(lr=5e-05), loss= "mse")
+    model.compile(optimizer=Adam(lr=2e-04), loss= "mse")
     weights_file = "model.h5"
     model.load_weights(weights_file)
     
-    pred = [float(model.predict(img[None,:,:,:], batch_size=1))/10 for img in x]
+    pred = [float(model.predict(img[None,:,:,:], batch_size=1))/4 for img in x]
     
     plt.plot(pred)
     plt.plot(y)

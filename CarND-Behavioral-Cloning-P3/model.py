@@ -35,12 +35,21 @@ def preprocess(image, top_offset=.375, bottom_offset=.125):
     return image
 
 def flip( x, y):
+    '''
+    Flips random half of the dataset images and values to distribute the data
+    equally on both the sides.
+    '''
     flip_indices = random.sample(range(x.shape[0]), int(x.shape[0] / 2))
     x[flip_indices] = x[flip_indices, :, ::-1, :]
     y[flip_indices] = -y[flip_indices]
     return (x,y)
 
 def make_dataset( dataset, train = True, cases = None):
+    '''
+    Augments the data and make the dataset: Adds the augmented values and images of
+    left and right steering( Since the given data is extremely biased). Returns a 
+    dataset.
+    '''
     n = int(len(dataset)/4)
     x = []
     y = []
@@ -52,10 +61,10 @@ def make_dataset( dataset, train = True, cases = None):
             if val!=0:
                 indices = np.random.randint(17)
                 for k in range(indices):
-                    shift = np.random.uniform(-0.1,0.1)
+                    shift = np.random.uniform(-0.07,0.07)
                     #print(shift)
                     x.append(preprocess(img,top_offset= .375 + shift, bottom_offset = .125 + shift))
-                    y.append((round(np.random.normal(val,0.0003),5)+ cameras_steering_correction[j])*10)
+                    y.append((val + round(np.random.normal(shift,0.0003),5)+ cameras_steering_correction[j])*10)
             x.append(preprocess(img))
             y.append(( val + cameras_steering_correction[j])*10)
         x = np.array(x)#/127
@@ -76,13 +85,7 @@ def make_dataset( dataset, train = True, cases = None):
         else:
             raise ValueError("Invalid type for cases!")
     return shuffle(x, y)
-                
-
-def scheduler(epoch, lr):
-    if epoch < 3:
-        return lr
-    else:
-        return lr * tf.math.exp(-0.1)   
+                 
     
 if __name__ == '__main__':
     
@@ -120,10 +123,10 @@ if __name__ == '__main__':
         model.add(Conv2D(64, 3, input_shape=(3, 20, 64), activation='relu'))
         model.add(Flatten())
         model.add(Dense(1164, activation='relu'))
-        model.add(Dropout(0.5))
+        model.add(Dropout(0.5)) #Added dropout layer to avoid overfitting
         model.add(Dense(100, activation='relu'))
         model.add(Dense(50, activation='relu'))
-        model.add(Dropout(0.5))
+        model.add(Dropout(0.5)) #Added dropout layer to avoid overfitting
         model.add(Dense(10, activation='relu'))
         model.add(Dense(1))
         model.build()
@@ -133,8 +136,9 @@ if __name__ == '__main__':
         print("Model built!")
         datagen = ImageDataGenerator(
                     brightness_range = (0.7,0.9)
-                    )
+                    ) #Further data augmentation
 
+        
         datagen.fit(train_x)
 
         history = model.fit_generator(
